@@ -1,7 +1,8 @@
-import { neon } from "@neondatabase/serverless";
+import * as schema from "./src/db/schema";
+
 import { config } from "dotenv";
 import { drizzle } from "drizzle-orm/neon-http";
-import * as schema from "./src/db/schema";
+import { neon } from "@neondatabase/serverless";
 import { seed } from "drizzle-seed";
 
 config({ path: ".dev.vars" });
