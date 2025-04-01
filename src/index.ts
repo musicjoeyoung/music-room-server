@@ -1,8 +1,9 @@
-import { instrument } from "@fiberplane/hono-otel";
 import { createFiberplane, createOpenAPISpec } from "@fiberplane/hono";
-import { neon } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-http";
+
 import { Hono } from "hono";
+import { drizzle } from "drizzle-orm/neon-http";
+import { instrument } from "@fiberplane/hono-otel";
+import { neon } from "@neondatabase/serverless";
 import { users } from "./db/schema";
 
 type Bindings = {
@@ -22,6 +23,28 @@ app.get("/api/users", async (c) => {
   return c.json({
     users: await db.select().from(users),
   });
+});
+
+app.post("/api/users", async (c) => {
+  const sql = neon(c.env.DATABASE_URL);
+  const db = drizzle(sql);
+  const { username, password, email, firstName, lastName, displayName, bio } = await c.req.json();
+  const newUser = {
+    username,
+    password,
+    email,
+    firstName,
+    lastName,
+    displayName,
+    bio,
+  };
+  try {
+    const result = await db.insert(users).values(newUser).returning();
+    return c.json(result);
+
+  } catch (error) {
+    console.error("ERROR", error)
+  }
 });
 
 /**
